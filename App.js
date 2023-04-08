@@ -17,6 +17,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { firebaseConfig } from './config';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
+import * as Location from 'expo-location';
 
 const w = Dimensions.get("window").width;
 const h = Dimensions.get("window").height;
@@ -26,6 +27,19 @@ const Stack = createNativeStackNavigator();
 
 function HomeScreen({navigation}) {
 
+  useEffect(() => {
+    (async () => {
+      let { status } = await  Location.requestForegroundPermissionsAsync();
+     if (status !== 'granted') {
+       // setStatus('Permission to access location was denied');
+        return;
+     } else {
+       console.log('Access granted!!')
+      // setStatus(status)
+     }
+    
+    })();
+  }, []);
 
   var mapStyle =
   [
@@ -430,8 +444,10 @@ function HomeScreen({navigation}) {
       <MapView
         ref={mapRef}
         showsUserLocation={true}
+        followsUserLocation={true}
         customMapStyle={mapStyle}
         style={styles.map}
+        
         initialRegion={{
           latitude: 56.9677,
           longitude: 24.1056,
@@ -571,18 +587,7 @@ function LoginScreen({ navigation }) {
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   
-  const handleCreateAccount = () => {
-    createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      console.log('Account created')
-      const user = userCredential.user;
-      console.log(user)
-    })
-    .catch.log(error => {
-      console.log(error)
-    })
-      
-  }
+
 
   const handleSignIn = () => {
     signInWithEmailAndPassword(auth, email, password)
@@ -674,6 +679,7 @@ function RegisterScreen({ navigation }) {
       console.log('Account created')
       const user = userCredential.user;
       console.log(user)
+      navigation.navigate('home');
     })
     .catch.log(error => {
       console.log(error)
@@ -704,13 +710,13 @@ function RegisterScreen({ navigation }) {
               <Input placeholder='Email' keyboardType='email-address'
               onChangeText={(text) => setEmail(text)}></Input>
               <Input placeholder='Name' secureTextEntry type='name'
-              onChangeText={(text) => setPassword(text)}></Input>
+              ></Input>
               <Input placeholder='Password' secureTextEntry type='password'
               onChangeText={(text) => setPassword(text)}></Input>
               <Input placeholder='Repeat password' secureTextEntry type='password'
-              onChangeText={(text) => setPassword(text)}></Input>
+              ></Input>
               <Input placeholder='Age' secureTextEntry type='password'
-              onChangeText={(text) => setPassword(text)}></Input>
+             ></Input>
           </View>
           <View style={{height:30, marginTop:-20, flexDirection:'row'}}> 
           <View style={{flex:1, marginLeft:-87}}>
@@ -727,6 +733,7 @@ function RegisterScreen({ navigation }) {
                 backgroundColor: '#8d0fa3',borderRadius: 30, shadowOffset:{width:1, height:10},
                 shadowOpacity: 0.4,shadowRadius:3,elevation: 15, shadowColor:'#d751e0'}}
               containerStyle={{width:200, marginTop:10, borderRadius: 30,}} title='Register'
+              onPress={handleCreateAccount}
               />
           </View>
          
