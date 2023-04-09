@@ -1,5 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Marker, Polygon, Callout } from "react-native-maps";
+import MapView, { Marker, Polygon, Callout } from "react-native-maps";
 import { StyleSheet, Text, View , KeyboardAvoidingView,ScrollView, 
   Platform, StatusBar, SafeAreaView, Image, ImageBackground, Dimensions, Alert} from 'react-native';
 import { useRef, useState, Label, Item, Body, useEffect } from 'react';
@@ -18,7 +18,7 @@ import { firebaseConfig } from './config';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import * as Location from 'expo-location';
-import MapView from "react-native-map-clustering";
+
 const w = Dimensions.get("window").width;
 const h = Dimensions.get("window").height;
 const Tab = createMaterialBottomTabNavigator();
@@ -447,7 +447,8 @@ function HomeScreen({navigation}) {
         followsUserLocation={true}
         customMapStyle={mapStyle}
         style={styles.map}
-        
+        showsCompass={false}
+        showsIndoorLevelPicker={true}
         initialRegion={{
           latitude: 56.9677,
           longitude: 24.1056,
