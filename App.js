@@ -449,6 +449,7 @@ function HomeScreen({navigation}) {
         style={styles.map}
         showsCompass={false}
         showsIndoorLevelPicker={true}
+        zoomEnabled={false}
         initialRegion={{
           latitude: 56.9677,
           longitude: 24.1056,
