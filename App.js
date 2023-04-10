@@ -598,10 +598,10 @@ function LoginScreen({ navigation }) {
       console.log(user)
       navigation.navigate('home');
     })
-    /*.catch.log(error => {
-      console.log(error)
-      Alert.alert(error.message)
-    })*/
+    .catch.log(error => {
+      
+      Alert.alert('Login error',error.message)
+    })
   }
   /*loginUser = async (email, password) => {
     try{
