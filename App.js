@@ -11,14 +11,42 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/AntDesign';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Sidebar from './customDrawer';
-import Home from './Home';
 import Swiper from "react-native-swiper";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { firebaseConfig } from './config';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import * as Location from 'expo-location';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
 
+WebBrowser.maybeCompleteAuthSession();
+const [accessToken, setAccessToken] = React.useState(null);
+const [user, setUser] = React.useState(null);
+const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+  clientId: "958553801084-04mj5h4b6rrtbnafi7fipgcu7qkfdbf2.apps.googleusercontent.com",
+  iosClientId: "958553801084-s85p2orhfvi9vui0s6714dh1usb7k7b2.apps.googleusercontent.com",
+  androidClientId: "958553801084-5244sg4st3j8j1i0jlcone9n4hndof3u.apps.googleusercontent.com"
+});
+
+React.useEffect(() => {
+  if(response?.type === "success"){
+    setAccessToken(response.authentication.accessToken);
+    accessToken && fetchUserInfo();
+  }
+}, [response, accessToken])
+
+async function fetchUserInfo(){
+  let response = await fetch("https://www.googleapis.com/userinfo/v2/me",{
+    headers: { Authorization: `Bearer ${accessToken}`}
+  });
+  const useInfo = await response.json();
+  setUser(useInfo);
+}
+//client id android 958553801084-5244sg4st3j8j1i0jlcone9n4hndof3u.apps.googleusercontent.com
+// client id ios 958553801084-s85p2orhfvi9vui0s6714dh1usb7k7b2.apps.googleusercontent.com
+//client secret   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
+// client id  web  958553801084-04mj5h4b6rrtbnafi7fipgcu7qkfdbf2.apps.googleusercontent.com
 const w = Dimensions.get("window").width;
 const h = Dimensions.get("window").height;
 const Tab = createMaterialBottomTabNavigator();
@@ -603,13 +631,7 @@ function LoginScreen({ navigation }) {
       Alert.alert('Login error',error.message)
     })
   }
-  /*loginUser = async (email, password) => {
-    try{
-      await firebase.auth().signInWithEmailAndPassword(email, password)
-    } catch(error){
-      alert(error.message)
-    }
-  }*/
+ 
   return (
    
     <ScrollView style={{ flex: 1, backgroundColor:'#fff'}}
@@ -657,7 +679,11 @@ function LoginScreen({ navigation }) {
             <Text style={{textAlign:'center'}}>or Login With</Text>
             <View style={{flexDirection:'row', flex:1, justifyContent:'space-around', marginTop:20}}>
                 <MaterialCommunityIcons name='facebook' style={{color:'black',fontSize:30}}/>
-                <MaterialCommunityIcons name='google-plus' style={{color:'black',fontSize:30}}/>
+                <MaterialCommunityIcons name='google-plus' style={{color:'black',fontSize:30}} onPress={
+                  () => {
+                    promptAsync();
+                  }
+                }/>
                 <MaterialCommunityIcons name='twitter' style={{color:'black',fontSize:30}}/>
             </View>
           </View>
