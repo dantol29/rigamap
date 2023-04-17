@@ -1,15 +1,15 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import MapView, { Marker, Polygon, Callout } from "react-native-maps";
 import { StyleSheet, Text, View , KeyboardAvoidingView,ScrollView, 
-  Platform, StatusBar, SafeAreaView, Image, ImageBackground, Dimensions, Alert} from 'react-native';
-import { useRef, useState, Label, Item, Body, useEffect, React } from 'react';
+  Platform, StatusBar, SafeAreaView, Image, ImageBackground, Dimensions, Alert, Keyboard, Pressable, Animated} from 'react-native';
+import React, { useRef, useState, Label, Item, Body, useEffect } from 'react';
 import { Button, CheckBox, Input, ListItem } from 'react-native-elements';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/AntDesign';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { FlatList, TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import Sidebar from './customDrawer';
 import Swiper from "react-native-swiper";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -17,12 +17,19 @@ import { firebaseConfig } from './config';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import * as Location from 'expo-location';
-
+import { markers, mapDarkStyle, mapStandardStyle } from './model/mapData';
+import Ionicons from 'react-native-vector-icons/Ionicons'; 
+import StarRating from './StarRating';
 
 //client id android 958553801084-5244sg4st3j8j1i0jlcone9n4hndof3u.apps.googleusercontent.com
 // client id ios 958553801084-s85p2orhfvi9vui0s6714dh1usb7k7b2.apps.googleusercontent.com
 //client secret   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
 // client id  web  958553801084-04mj5h4b6rrtbnafi7fipgcu7qkfdbf2.apps.googleusercontent.com
+const { width, height } = Dimensions.get("window");
+const CARD_HEIGHT = 180;
+const CARD_WIDTH = width * 0.8;
+const SPACING_FOR_CARD_INSET = width * 0.1 - 10;
+
 const w = Dimensions.get("window").width;
 const h = Dimensions.get("window").height;
 const Tab = createMaterialBottomTabNavigator();
@@ -45,396 +52,10 @@ function HomeScreen({navigation}) {
     })();
   }, []);
 
-  var mapStyle =
-  [
-    {
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#ebe3cd"
-        }
-      ]
-    },
-    {
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#523735"
-        }
-      ]
-    },
-    {
-      "elementType": "labels.text.stroke",
-      "stylers": [
-        {
-          "color": "#f5f1e6"
-        }
-      ]
-    },
-    {
-      "featureType": "administrative",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#c9b2a6"
-        }
-      ]
-    },
-    {
-      "featureType": "administrative.land_parcel",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#dcd2be"
-        }
-      ]
-    },
-    {
-      "featureType": "administrative.land_parcel",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#ae9e90"
-        }
-      ]
-    },
-    {
-      "featureType": "landscape.man_made",
-      "stylers": [
-        {
-          "color": "#c2a5d9"
-        }
-      ]
-    },
-    {
-      "featureType": "landscape.natural",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#dfd2ae"
-        }
-      ]
-    },
-    {
-      "featureType": "landscape.natural.landcover",
-      "stylers": [
-        {
-          "color": "#c4c4e4"
-        }
-      ]
-    },
-    {
-      "featureType": "poi",
-      "stylers": [
-        {
-          "visibility": "on"
-        }
-      ]
-    },
-    {
-      "featureType": "poi",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#dfd2ae"
-        }
-      ]
-    },
-    {
-      "featureType": "poi",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#93817c"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.attraction",
-      "stylers": [
-        {
-          "visibility": "off"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.business",
-      "stylers": [
-        {
-          "visibility": "off"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.government",
-      "stylers": [
-        {
-          "visibility": "off"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.medical",
-      "stylers": [
-        {
-          "visibility": "off"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.park",
-      "elementType": "geometry.fill",
-      "stylers": [
-        {
-          "color": "#a5b076"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.park",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#447530"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.place_of_worship",
-      "stylers": [
-        {
-          "visibility": "off"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.school",
-      "stylers": [
-        {
-          "visibility": "off"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.sports_complex",
-      "stylers": [
-        {
-          "visibility": "off"
-        }
-      ]
-    },
-    {
-      "featureType": "road",
-      "stylers": [
-        {
-          "weight": 0.5
-        }
-      ]
-    },
-    {
-      "featureType": "road",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#f5f1e6"
-        }
-      ]
-    },
-    {
-      "featureType": "road.arterial",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#fdfcf8"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#f8c967"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#e9bc62"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway.controlled_access",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#e98d58"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway.controlled_access",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#db8555"
-        }
-      ]
-    },
-    {
-      "featureType": "road.local",
-      "elementType": "labels.text",
-      "stylers": [
-        {
-          "visibility": "off"
-        }
-      ]
-    },
-    {
-      "featureType": "road.local",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#806b63"
-        }
-      ]
-    },
-    {
-      "featureType": "transit.line",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#dfd2ae"
-        }
-      ]
-    },
-    {
-      "featureType": "transit.line",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#8f7d77"
-        }
-      ]
-    },
-    {
-      "featureType": "transit.line",
-      "elementType": "labels.text.stroke",
-      "stylers": [
-        {
-          "color": "#ebe3cd"
-        }
-      ]
-    },
-    {
-      "featureType": "transit.station",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#dfd2ae"
-        }
-      ]
-    },
-    {
-      "featureType": "transit.station.airport",
-      "stylers": [
-        {
-          "visibility": "off"
-        }
-      ]
-    },
-    {
-      "featureType": "transit.station.rail",
-      "stylers": [
-        {
-          "visibility": "off"
-        }
-      ]
-    },
-    {
-      "featureType": "water",
-      "elementType": "geometry.fill",
-      "stylers": [
-        {
-          "color": "#b9d3c2"
-        }
-      ]
-    },
-    {
-      "featureType": "water",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#92998d"
-        }
-      ]
-    }
-  ]
-  
   const mapRef = useRef(null);
-  const [region, setRegion] = useState({
-    latitude: 56.9516,
-    longitude:  24.1187,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  });
-  const gardenRegion = {
-    latitude: 56.9516,
-    longitude: 24.1187,
-    latitudeDelta: 0.005,
-    longitudeDelta: 0.005,
-  };
-  const mezaparkRegion = {
-    latitude: 57.0122,
-    longitude: 24.1538,
-    latitudeDelta: 0.03,
-    longitudeDelta: 0.03,
-  };
-  const origoRegion = {
-    latitude: 56.9477,
-    longitude: 24.1213,
-    latitudeDelta: 0.007,
-    longitudeDelta: 0.007,
-  };
-  const mildaRegion = {
-    latitude: 56.9515,
-    longitude: 24.1133,
-    latitudeDelta: 0.007,
-    longitudeDelta: 0.007,
-  };
-  const blackRegion = {
-    latitude: 56.9473,
-    longitude: 24.1068,
-    latitudeDelta: 0.007,
-    longitudeDelta: 0.007,
-  };
-  const[friends] = useState([
-    {
-      id: 1,
-      title: 'bob1',
-      description: 'child',
-      location:{
-        latitude: 56.9541,
-        longitude: 24.1149,
-      },
-      icon: 'dog'
-    },
-    {
-      id: 2,
-      title: 'bob2',
-      description: 'child',
-      location:{
-        latitude: 56.9716,
-        longitude: 24.1587,
-      },
-      icon: 'dog'
-    },
-    
-  ])
+ let mapAnimation = new Animated.Value(0);
+  
+  
   const goToGarden = () => {
     //complete this animation in 3 seconds
     mapRef.current.animateToRegion(gardenRegion, 2 * 1000);
@@ -443,13 +64,80 @@ function HomeScreen({navigation}) {
     //complete this animation in 3 seconds
     mapRef.current.animateToRegion(mezaparkRegion, 2 * 1000);
   };
+
+  const initialMapState = {
+    markers,
+    categories: [
+      { 
+        name: 'Shops', 
+        icon: <MaterialCommunityIcons style={styles.chipsIcon} name="paw" size={18} />,
+      },
+      {
+        name: 'Clinics',
+        icon: <MaterialCommunityIcons name="hospital" style={styles.chipsIcon} size={18} />,
+      },
+      {
+        name: 'Parks',
+        icon: <MaterialCommunityIcons name="forest" style={styles.chipsIcon} size={18} />,
+      },
+      {
+        name: 'Schools',
+        icon: <Ionicons name="school" style={styles.chipsIcon} size={18} />,
+      },
+      {
+        name: 'Hotel',
+        icon: <Ionicons name="md-restaurant" style={styles.chipsIcon} size={15} />,
+      },
+  ],
+    region: {
+      latitude: 22.62938671242907,
+      longitude: 88.4354486029795,
+      latitudeDelta: 0.04864195044303443,
+      longitudeDelta: 0.040142817690068,
+    },
+  };
+  
+  const onMarkerPress = (mapEventData) => {
+    const markerID = mapEventData._targetInst.return.key;
+
+    let x = (markerID * CARD_WIDTH) + (markerID * 20); 
+    if (Platform.OS === 'ios') {
+      x = x - SPACING_FOR_CARD_INSET;
+    }
+
+    _scrollView.current.scrollTo({x: x, y: 0, animated: true});
+  }
+ 
+
+  
+  const [state, setState] = React.useState(initialMapState);
+  const _scrollView = React.useRef(null);
+
+  const interpolations = state.markers.map((marker, index) => {
+    const inputRange = [
+      (index - 1) * CARD_WIDTH,
+      index * CARD_WIDTH,
+      ((index + 1) * CARD_WIDTH),
+    ];
+
+    const scale = mapAnimation.interpolate({
+      inputRange,
+      outputRange: [1, 1.5, 1],
+      extrapolate: "clamp"
+    });
+
+    return { scale };
+  });
+
+
   return (
     <View style={styles.container}>
+      
       <MapView
         ref={mapRef}
         showsUserLocation={true}
         followsUserLocation={true}
-        customMapStyle={mapStyle}
+        customMapStyle={mapStandardStyle}
         style={styles.map}
         showsCompass={false}
         showsIndoorLevelPicker={true}
@@ -460,6 +148,27 @@ function HomeScreen({navigation}) {
           longitudeDelta: 0.0421,
         }}
       >
+
+         {state.markers.map((marker, index) => {
+         const scaleStyle = {
+          transform: [
+            {
+              scale: interpolations[index].scale,
+            },
+          ],
+        };
+          return (
+            <Marker key={index} coordinate={marker.coordinate} onPress={(e)=>onMarkerPress(e)}>
+              <Animated.View style={[styles.markerWrap]}>
+                <Animated.Image
+                  source={require('./marker_purple.png')}
+                  style={[styles.marker, scaleStyle]}
+                  resizeMode="cover"
+                />
+              </Animated.View>
+            </Marker>
+          );
+        })}
         <Polygon
     coordinates={[
       { latitude: 57.022991, longitude: 24.154376 },
@@ -477,45 +186,105 @@ function HomeScreen({navigation}) {
     fillColor="rgba(201, 242, 155,  0.5)"
     strokeWidth={1}
   />
-        <Marker coordinate={mildaRegion} title='Milda' 
-      description='Zivotnije i vse dela' image={require('./dog_custom.png')}/>
-
-      <Marker coordinate={blackRegion} title='Blackheads' 
-      description='Zivotnije i vse dela' image={require('./dog_custom3.png')}/>
-
-      <Marker coordinate={gardenRegion} title='Vermik' 
-      description='Zivotnije i vse dela' image={require('./dog_custom.png')}/>
-
-       <Marker coordinate={origoRegion} title='Origo' 
-      description='Zivotnije i vse dela' image={require('./dog_custom3.png')} />
-
-      <Marker coordinate={mezaparkRegion} title='Mezaparks' 
-      description='Zivotnije i vse dela' pinColor='green'>
-       <Callout tooltip>
-        <View>
-          <View style={styles.bubble}>
-            <Text style={{fontSize:16}}>The best park</Text>
-            
-          </View>
-        </View>
-       </Callout>
-      </Marker>
-
-      {friends ? friends.map((friend) => (
-        <Marker coordinate={friend.location}
-        title={friend.title} description={friend.description}
-        image={require('./dog_custom2.png')}>
-       
-        </Marker>
-      )): null}
-      </MapView>
       
+      
+      </MapView>
+      <View style={styles.searchBox}>
+        <TextInput 
+          placeholder="Search here"
+          placeholderTextColor="#000"
+          autoCapitalize="none"
+          style={{flex:1,padding:0}}
+        />
+        <Ionicons name="ios-search" size={20} />
+      </View>
+      <ScrollView
+        horizontal
+        scrollEventThrottle={1}
+        showsHorizontalScrollIndicator={false}
+        height={50}
+        style={styles.chipsScrollView}
+        contentInset={{ // iOS only
+          top:0,
+          left:0,
+          bottom:0,
+          right:20
+        }}
+        contentContainerStyle={{
+          paddingRight: Platform.OS === 'android' ? 20 : 0
+        }}
+      >
+        {state.categories.map((category, index) => (
+          
+          <TouchableOpacity key={index} style={styles.chipsItem}>
+            {category.icon}
+            <Text>{category.name}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+      <Animated.ScrollView
+        ref={_scrollView}
+        horizontal
+        pagingEnabled
+        scrollEventThrottle={1}
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={CARD_WIDTH + 20}
+        snapToAlignment="center"
+        style={styles.scrollView}
+        contentInset={{
+          top: 0,
+          left: SPACING_FOR_CARD_INSET,
+          bottom: 0,
+          right: SPACING_FOR_CARD_INSET
+        }}
+        contentContainerStyle={{
+          paddingHorizontal: Platform.OS === 'android' ? SPACING_FOR_CARD_INSET : 0
+        }}
+        onScroll={Animated.event(
+          [
+            {
+              nativeEvent: {
+                contentOffset: {
+                  x: mapAnimation,
+                }
+              },
+            },
+          ],
+          {useNativeDriver: true}
+        )}
+      >
+          {state.markers.map((marker, index) =>(
+          <View style={styles.card} key={index}>
+            <Image 
+              source={marker.image}
+              style={styles.cardImage}
+              resizeMode="cover"
+            />
+            <View style={styles.textContent}>
+              <Text numberOfLines={1} style={styles.cardtitle}>{marker.title}</Text>
+              <StarRating ratings={marker.rating} reviews={marker.reviews} />
+              <Text numberOfLines={1} style={styles.cardDescription}>{marker.description}</Text>
+              <View style={styles.button}>
+                <TouchableOpacity
+                  onPress={() => {}}
+                  
+                >
+                  <Text style={[styles.textSign, {
+                    color: '#8A56AC'
+                  }]}>More</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        ))}
+      </Animated.ScrollView>
     </View>
   );
 
 }
 
 function ProfileScreen() {
+       
         return (
           <SafeAreaView style={{ flex: 1, backgroundColor:'#fff' }}>
             <ScrollView
@@ -547,7 +316,9 @@ function ProfileScreen() {
               <Text style={styles.userInfoTitle}>29</Text>
               <Text style={styles.userInfoSubTitle}>Following</Text>
             </View> 
-
+           
+        
+            
            </View>
             </ScrollView>
           </SafeAreaView>
@@ -982,7 +753,7 @@ function App() {
 return(
   <NavigationContainer>
   <Drawer.Navigator drawerContent={props=><Sidebar {...props}/>} initialRouteName="Home">
-    <Drawer.Screen name="Home"  screenOptions={{headerShown: false}} component={HomeScreenStack}  options={{ 
+    <Drawer.Screen name="Home"  screenOptions={{headerShown: false}} component={HomeScreenStack}  options={{ headerShown: false,
       headerRight: () => (
         <View>
         <TouchableOpacity style={{marginRight:15}}>
@@ -990,10 +761,10 @@ return(
         </TouchableOpacity>
         </View>
       ),
-      
-         headerStyle: {shadowColor:'#000', elevation:10,backgroundColor:'#F3EDF5',
-           borderBottomRightRadius:50, borderBottomLeftRadius:50, height:100, },
-          headerTitle:'',headerTransparent: true, 
+         
+        // headerStyle: {shadowColor:'#000', elevation:10,backgroundColor:'#F3EDF5',
+          // borderBottomRightRadius:50, borderBottomLeftRadius:50, height:100, },
+          //headerTitle:'',headerTransparent: true, 
           drawerIcon:({focused, color,size}) => (
             <Icon name='home' style={{fontSize: size, color: color}} />
           )}}/>
@@ -1152,7 +923,98 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius:3,
     elevation: 15
-  }
+  },
+  searchBox:{
+    position:'absolute',
+    top:Platform.OS === 'ios' ? 50 : 60,
+    flexDirection:'row',
+    backgroundColor:'#fff',
+    width:'90%',
+    alignSelf:'center',
+    borderRadius: 5,
+    padding: 10,
+    shadowColor:'#ccc',
+    shadowOffset: {width: 0, height:3 },
+    shadowOpacity:0.5,
+    shadowRadius:5,
+    elevation:10
+  },
+  chipsScrollView: {
+    position:'absolute', 
+    top:Platform.OS === 'ios' ? 110 : 120, 
+    paddingHorizontal:10
+  },
+  chipsIcon: {
+    marginRight: 5,
+  },
+  chipsItem: {
+    flexDirection:"row",
+    backgroundColor:'#fff', 
+    borderRadius:20,
+    padding:8,
+    paddingHorizontal:20, 
+    marginHorizontal:10,
+    height:35,
+    shadowColor: '#ccc',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    elevation: 10,
+  },
+  marker: {
+    width: 30,
+    height: 40,
+  },
+  scrollView: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingVertical: 90,
+  },
+  endPadding: {
+    paddingRight: width - CARD_WIDTH,
+  },
+  card: {
+    // padding: 10,
+    elevation: 2,
+    backgroundColor: "#FFF",
+   
+    marginHorizontal: 10,
+    shadowColor: "#000",
+    shadowRadius: 5,
+    shadowOpacity: 0.3,
+    shadowOffset: { x: 2, y: -2 },
+    height: CARD_HEIGHT,
+    width: CARD_WIDTH,
+    overflow: "hidden",
+    borderRadius:20
+  },
+  cardImage: {
+    flex: 3,
+    width: "100%",
+    height: "100%",
+    alignSelf: "center",
+  },
+  textContent: {
+    flex: 2,
+    padding: 10,
+  },
+  cardtitle: {
+    fontSize: 12,
+    // marginTop: 5,
+    fontWeight: "bold",
+  },
+  cardDescription: {
+    fontSize: 12,
+    color: "#444",
+  },
+  markerWrap: {
+    alignItems: "center",
+    justifyContent: "center",
+    width:50,
+    height:50,
+  },
 });
 //<Button onPress={() => goToGarden()} title="Go to Vermanskij" />
 //<Button onPress={() => goToMezapark()} title="Go to Mezaparks" />
